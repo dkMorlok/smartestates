@@ -341,11 +341,14 @@ def upgrade() -> None:
             server_default=sa.text("ARRAY[]::varchar[]"),
         ),
     )
+    # Composite index supporting "recent scores ordered by composite" queries.
+    # A partial predicate with now() is rejected by Postgres (now() is STABLE,
+    # not IMMUTABLE) and would go stale regardless, so the recency filter is
+    # served by the leading computed_at column instead.
     op.create_index(
         "ix_score_composite_recent",
         "score",
-        ["composite"],
-        postgresql_where=sa.text("computed_at > now() - interval '7 days'"),
+        ["computed_at", "composite"],
     )
 
     # ---- seed sources ----

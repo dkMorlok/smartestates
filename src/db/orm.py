@@ -304,6 +304,35 @@ class MarketSegment(Base):
     )
 
 
+class RuianAddress(Base):
+    """Local copy of RÚIAN address points (ČÚZK). Seeded by scripts/seed_ruian.py.
+
+    The geocode stage does a nearest-neighbour lookup against `geom` to turn a
+    source GPS coordinate into a building: rooftop precision + the official
+    RÚIAN address code.
+    """
+
+    __tablename__ = "ruian_address"
+
+    kod_adm: Mapped[str] = mapped_column(String(12), primary_key=True)
+    kod_obce: Mapped[str] = mapped_column(String(12))
+    nazev_obce: Mapped[str] = mapped_column(Text)
+    nazev_momc: Mapped[str | None] = mapped_column(Text)
+    nazev_casti_obce: Mapped[str | None] = mapped_column(Text)
+    nazev_ulice: Mapped[str | None] = mapped_column(Text)
+    cislo_domovni: Mapped[str | None] = mapped_column(String(8))
+    cislo_orientacni: Mapped[str | None] = mapped_column(String(8))
+    psc: Mapped[str | None] = mapped_column(String(8))
+    geom: Mapped[Any] = mapped_column(
+        Geography(geometry_type="POINT", srid=4326, spatial_index=True)
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    __table_args__ = (Index("ix_ruian_address_obec", "kod_obce"),)
+
+
 class Score(Base):
     __tablename__ = "score"
 

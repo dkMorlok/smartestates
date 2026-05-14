@@ -7,18 +7,33 @@
 
 ## Geocoder
 
-**Self-hosted Nominatim seeded with RÚIAN + OSM CZ extract.**
+### MVP: RÚIAN address points in our own Postgres (implemented)
 
-Setup outline:
-1. Pull RÚIAN CSV/GML from ČÚZK (`https://vdp.cuzk.cz/`).
-2. Pull `czech-republic-latest.osm.pbf` from Geofabrik.
-3. Convert RÚIAN to OSM tags via custom loader, merge with OSM extract.
-4. Import into Nominatim Postgres.
-5. Run as a containerized service, reverse-proxied with response caching.
+Most listings (all of Sreality) already carry a GPS coordinate. The job is
+not to *find* a point — it's to resolve that point to a *building*: rooftop
+precision plus the official RÚIAN address code, which is the bulletproof key
+for property linking and dedup.
 
-Result: ~95% of CZ addresses geocode to rooftop precision, vs ~60% with vanilla Nominatim.
+So the MVP geocoder is simply the RÚIAN address registry loaded into our own
+PostGIS table and queried by nearest-neighbour:
 
-Refresh RÚIAN quarterly (it doesn't change fast).
+1. `scripts/seed_ruian.py` downloads the ČÚZK OB_ADR CSV export
+   (`https://vdp.cuzk.cz/vymenny_format/csv/`), projects S-JTSK (EPSG:5514)
+   coordinates to WGS84, and upserts into `ruian_address` (`make seed-ruian`).
+2. The `geocode` stage takes the source GPS, verifies it falls inside the
+   locality bbox, then looks up the nearest RÚIAN address within ~25 m →
+   rooftop precision + RÚIAN code.
+
+Refresh RÚIAN quarterly (it doesn't change fast). MVP scope is Praha (one
+obec code); widen via `REGION_TO_OBEC_CODE` in `scraper/ruian.py`.
+
+### Fallback / future: self-hosted Nominatim
+
+A self-hosted Nominatim (compose `geo` profile) is wired as an optional
+enrichment for listings with no usable GPS, and as the path for forward
+geocoding raw address strings. Production target: seed it with RÚIAN + the
+Geofabrik OSM CZ extract for ~95% rooftop coverage on free-text addresses.
+For the Praha/Sreality MVP the RÚIAN table above carries the load.
 
 ### Caching
 Aggressive. Every (`normalized_address`, `locality`) tuple → Redis with 30-day TTL. Hit rate after a week of operation should be > 90% because the same buildings get relisted constantly.

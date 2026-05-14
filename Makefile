@@ -1,5 +1,5 @@
 .PHONY: help up down logs ps build rebuild migrate revision shell psql redis-cli \
-	test lint format typecheck check sreality-discover-praha
+	test lint format typecheck check sreality-discover-praha seed-ruian
 
 help:
 	@echo "Common commands:"
@@ -20,6 +20,7 @@ help:
 	@echo "  make typecheck                - mypy"
 	@echo "  make check                    - lint + typecheck + test"
 	@echo "  make sreality-discover-praha  - trigger one discovery run"
+	@echo "  make seed-ruian [f=zip]       - seed ruian_address from ČÚZK OB_ADR"
 
 up:
 	docker compose up -d
@@ -74,3 +75,9 @@ check: lint typecheck test
 sreality-discover-praha:
 	docker compose exec worker python -c "from worker.tasks.ingest import discover; \
 		discover.delay('sreality', {'region': 10, 'category_main': 1, 'category_type': 1})"
+
+# Seed the RÚIAN address table. Pass a downloaded zip with `f=...` to avoid
+# the (slow, monthly-rotating) ČÚZK download; otherwise it builds the URL
+# from the first of the current month.
+seed-ruian:
+	docker compose run --rm api python scripts/seed_ruian.py $(if $(f),--file $(f),)

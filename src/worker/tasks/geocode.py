@@ -25,6 +25,7 @@ from scraper.geocode import (
     choose_property_link,
     resolve_location,
 )
+from scraper.ruian import nearest_ruian_address
 from shared.logging import get_logger
 
 log = get_logger("worker.geocode")
@@ -132,6 +133,7 @@ def geocode_listing(listing_id: int) -> dict[str, Any]:
             locality=parsed.get("locality"),
             city_district=parsed.get("city_district"),
             postcode=parsed.get("postcode"),
+            ruian_lookup=lambda lat, lon: nearest_ruian_address(db, lat, lon),
             nominatim=nominatim,
         )
 

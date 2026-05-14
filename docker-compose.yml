@@ -80,6 +80,7 @@ services:
     volumes:
       - ./src:/app/src
       - ./tests:/app/tests
+      - ./scripts:/app/scripts
       - ./migrations:/app/migrations
       - ./alembic.ini:/app/alembic.ini
     ports:

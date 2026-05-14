@@ -16,8 +16,9 @@ listings (they almost always include `gps`).
 """
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Protocol
 
 import httpx
 
@@ -251,6 +252,37 @@ class NominatimClient:
 
 
 # ---------------------------------------------------------------------------
+# RÚIAN lookup contract
+# ---------------------------------------------------------------------------
+
+
+class RuianMatch(Protocol):
+    """The fields resolve_location needs from a RÚIAN address hit.
+
+    scraper.ruian.RuianAddress satisfies this structurally; keeping it a
+    Protocol lets the geocode core stay independent of the RÚIAN module and
+    the database. Members are read-only properties so a frozen dataclass
+    satisfies the contract.
+    """
+
+    @property
+    def kod_adm(self) -> str: ...
+
+    @property
+    def nazev_momc(self) -> str | None: ...
+
+    @property
+    def nazev_casti_obce(self) -> str | None: ...
+
+    @property
+    def psc(self) -> str | None: ...
+
+
+# (lat, lon) -> nearest RÚIAN address within a tolerance, or None.
+RuianLookup = Callable[[float, float], "RuianMatch | None"]
+
+
+# ---------------------------------------------------------------------------
 # Orchestration
 # ---------------------------------------------------------------------------
 
@@ -275,13 +307,16 @@ def resolve_location(
     locality: str | None = None,
     city_district: str | None = None,
     postcode: str | None = None,
+    ruian_lookup: RuianLookup | None = None,
     nominatim: NominatimClient | None = None,
     bbox: BBox = PRAHA_BBOX,
 ) -> GeocodeResult:
     """Resolve one listing's location hints into a point + precision.
 
-    Pure orchestration: the only side effects are optional Nominatim calls,
-    which themselves never raise.
+    Orchestration only: side effects are the optional RÚIAN lookup and
+    Nominatim calls, both of which are expected never to raise. When a source
+    GPS point is trusted, RÚIAN is consulted first (it gives rooftop precision
+    plus the official address code); Nominatim is the fallback enrichment.
     """
     district_fallback = city_district or praha_district_from_postcode(postcode)
     addr_norm = normalize_address(address_raw) if address_raw else None
@@ -301,6 +336,21 @@ def resolve_location(
                 postcode=postcode,
                 note="source_gps",
             )
+            # RÚIAN first — a hit gives rooftop precision + the address code.
+            if ruian_lookup is not None:
+                match = ruian_lookup(lat, lon)
+                if match is not None:
+                    result.precision = AddressPrecision.ROOFTOP
+                    result.ruian_address_code = match.kod_adm
+                    if match.nazev_momc:
+                        result.city_district = match.nazev_momc
+                    if match.nazev_casti_obce:
+                        result.cadastral_area = match.nazev_casti_obce
+                    if match.psc and not result.postcode:
+                        result.postcode = match.psc
+                    result.note = "source_gps+ruian"
+                    return result
+            # Otherwise fall back to reverse geocoding via Nominatim.
             if nominatim is not None and nominatim.enabled:
                 rev = nominatim.reverse(lat, lon)
                 if rev is not None:

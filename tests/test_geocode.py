@@ -50,6 +50,23 @@ class FakeNominatim:
         return self._search
 
 
+class FakeRuianMatch:
+    """Structurally satisfies geocode.RuianMatch."""
+
+    def __init__(
+        self,
+        *,
+        kod_adm: str = "21745671",
+        nazev_momc: str | None = "Praha 5",
+        nazev_casti_obce: str | None = "Smíchov",
+        psc: str | None = "150 00",
+    ) -> None:
+        self.kod_adm = kod_adm
+        self.nazev_momc = nazev_momc
+        self.nazev_casti_obce = nazev_casti_obce
+        self.psc = psc
+
+
 class TestBBox:
     def test_contains_inside(self) -> None:
         assert PRAHA_BBOX.contains(PRAHA_LAT, PRAHA_LON) is True
@@ -119,6 +136,41 @@ class TestResolveLocation:
         assert res.ruian_address_code == "21731451"
         assert res.city_district == "Praha 5"
         assert res.note == "source_gps+nominatim"
+
+    def test_ruian_lookup_upgrades_to_rooftop(self) -> None:
+        res = resolve_location(
+            source_geo={"lat": PRAHA_LAT, "lon": PRAHA_LON},
+            locality="Praha 5 - Smíchov",
+            ruian_lookup=lambda lat, lon: FakeRuianMatch(),  # type: ignore[arg-type,return-value]
+        )
+        assert res.precision == AddressPrecision.ROOFTOP
+        assert res.ruian_address_code == "21745671"
+        assert res.city_district == "Praha 5"
+        assert res.cadastral_area == "Smíchov"
+        assert res.note == "source_gps+ruian"
+
+    def test_ruian_takes_priority_over_nominatim(self) -> None:
+        # RÚIAN hit short-circuits — Nominatim must not even be consulted.
+        nominatim = FakeNominatim(reverse_result={"addresstype": "city", "address": {}})
+        res = resolve_location(
+            source_geo={"lat": PRAHA_LAT, "lon": PRAHA_LON},
+            ruian_lookup=lambda lat, lon: FakeRuianMatch(),  # type: ignore[arg-type,return-value]
+            nominatim=nominatim,  # type: ignore[arg-type]
+        )
+        assert res.note == "source_gps+ruian"
+        assert res.precision == AddressPrecision.ROOFTOP
+
+    def test_ruian_miss_falls_back_to_nominatim(self) -> None:
+        nominatim = FakeNominatim(
+            reverse_result={"addresstype": "building", "address": {}, "extratags": {}}
+        )
+        res = resolve_location(
+            source_geo={"lat": PRAHA_LAT, "lon": PRAHA_LON},
+            ruian_lookup=lambda lat, lon: None,
+            nominatim=nominatim,  # type: ignore[arg-type]
+        )
+        assert res.note == "source_gps+nominatim"
+        assert res.precision == AddressPrecision.ROOFTOP
 
     def test_forward_geocode_when_no_source_gps(self) -> None:
         nominatim = FakeNominatim(

@@ -27,6 +27,9 @@ dependencies = [
     "tenacity>=9.0",
     "selectolax>=0.3.25",
 
+    # geo
+    "pyproj>=3.6",
+
     # storage
     "boto3>=1.35",
 
@@ -83,7 +86,7 @@ warn_unused_ignores = true
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["geoalchemy2.*", "celery.*"]
+module = ["geoalchemy2.*", "celery.*", "pyproj.*"]
 ignore_missing_imports = true
 
 # Celery's task/signal decorators are untyped (celery.* has no stubs), which

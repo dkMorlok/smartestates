@@ -122,8 +122,15 @@ def parse_sreality_detail(
 
     # ---- disposition ----
     # Sreality includes disposition in name/meta_description for flats.
-    disposition_text = " ".join(filter(None, [name, meta_desc, locality_str]))
-    disposition = parse_disposition(disposition_text)
+    # Prefer the listing name (most authoritative), then meta_description,
+    # then locality: parse_disposition returns the first pattern match, so
+    # concatenating the fields would let a stale phrase in a lower-priority
+    # field win over the real value in the name.
+    disposition = None
+    for candidate in (name, meta_desc, locality_str):
+        disposition = parse_disposition(candidate)
+        if disposition is not None:
+            break
 
     # ---- iterate items[] ----
     fields: dict[str, Any] = {}     # top-level overrides

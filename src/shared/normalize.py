@@ -43,7 +43,7 @@ def normalize_for_match(s: str) -> str:
 # ---------------------------------------------------------------------------
 
 _DISPOSITION_PATTERNS: tuple[tuple[re.Pattern[str], Disposition], ...] = (
-    (re.compile(r"\bgarsoni[eé]ra\b"), Disposition.GARSONIERA),
+    (re.compile(r"\bgarsoni[eé]ra\b", re.I), Disposition.GARSONIERA),
     (re.compile(r"\b1\s*\+\s*kk\b", re.I), Disposition.D_1KK),
     (re.compile(r"\b1\s*\+\s*1\b", re.I), Disposition.D_1_1),
     (re.compile(r"\b2\s*\+\s*kk\b", re.I), Disposition.D_2KK),

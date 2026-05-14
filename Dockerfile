@@ -14,14 +14,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# python deps installed once for cache layering
-COPY pyproject.toml ./
-RUN pip install --upgrade pip && pip install -e .
-
-# project source
+# Copy project files BEFORE pip install. setuptools needs src/ to exist
+# to discover the packages declared by [tool.setuptools.packages.find].
+COPY pyproject.toml README.md ./
 COPY src ./src
 COPY migrations ./migrations
 COPY alembic.ini ./alembic.ini
+
+# Install project + dev deps (dev deps are tiny and needed for `make test`,
+# `make lint`, `make typecheck` running inside the container).
+RUN pip install --upgrade pip && pip install -e ".[dev]"
 
 ENV PYTHONPATH=/app/src
 

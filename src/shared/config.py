@@ -43,6 +43,11 @@ class Settings(BaseSettings):
     sreality_rate_limit_rps: float = 1.0
     sreality_base_url: str = "https://www.sreality.cz"
 
+    # Geocoding
+    # Self-hosted Nominatim (RÚIAN-seeded). Optional: when unset, the geocode
+    # stage relies on source-provided GPS only. See docs/GEO.md.
+    nominatim_url: str | None = None
+
     # API
     api_host: str = "0.0.0.0"
     api_port: int = 8000

@@ -17,6 +17,8 @@ celery_app = Celery(
     include=[
         "worker.tasks.ingest",
         "worker.tasks.normalize",
+        "worker.tasks.geocode",
+        "worker.tasks.dedup",
         "worker.tasks.ops",
     ],
 )
@@ -33,6 +35,8 @@ celery_app.conf.update(
         "ingest.fetch": {"queue": "ingest.fetch"},
         "ingest.parse": {"queue": "ingest.parse"},
         "normalize.from_raw": {"queue": "normalize"},
+        "geocode.listing": {"queue": "geocode"},
+        "dedup.tier1": {"queue": "dedup"},
         "ops.source_canary": {"queue": "default"},
     },
     task_default_retry_delay=60,

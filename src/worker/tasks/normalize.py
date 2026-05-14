@@ -128,4 +128,10 @@ def normalize_from_raw(raw_listing_id: int) -> dict[str, Any]:
             created=created,
             source_listing_id=row.source_listing_id,
         )
-        return {"listing_id": listing_id, "created": created}
+
+    # Hand off to the geocode stage (which in turn triggers dedup).
+    from worker.tasks.geocode import geocode_listing
+
+    geocode_listing.delay(listing_id)
+
+    return {"listing_id": listing_id, "created": created}

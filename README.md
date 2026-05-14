@@ -6,14 +6,16 @@ Architectural and product docs live in `docs/`. **Read `docs/CZ_NOTES.md` first*
 
 ## Status
 
-Week 1 scaffold:
-- Dev stack via Docker Compose (Postgres+PostGIS, Redis, MinIO)
+Weeks 1–3:
+- Dev stack via Docker Compose (Postgres+PostGIS, Redis, MinIO; optional Nominatim)
 - Postgres schema (Alembic baseline) for source / raw / canonical / scoring layers
 - Shared pydantic schemas + CZ-specific normalization (disposition, ownership, building type, condition, energy class, floor, address)
 - Source SDK + Sreality module (discover/fetch/parse against the JSON endpoints)
-- Celery worker + beat with rate-limited ingestion pipeline (discover → fetch → parse → normalize)
+- Celery worker + beat with rate-limited pipeline: discover → fetch → parse → normalize → geocode → dedup
+- Geocode stage: source-GPS verified against locality bbox, optional Nominatim enrichment, property linking (RÚIAN / spatial proximity)
+- Dedup tier 1: same-source duplicates collapsed per property
 - FastAPI app with `/healthz`, `/readyz`, `/v1/listings`
-- Tests covering CZ normalization + Sreality parsing
+- Tests covering CZ normalization, Sreality parsing, geocoding, dedup
 - CI on GitHub Actions
 
 ## Stack

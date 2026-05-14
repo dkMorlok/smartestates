@@ -102,7 +102,7 @@ services:
         condition: service_completed_successfully
     volumes:
       - ./src:/app/src
-    command: celery -A worker.celery_app worker --loglevel=INFO --concurrency=4 -Q ingest.discover,ingest.fetch,ingest.parse,normalize,geocode
+    command: celery -A worker.celery_app worker --loglevel=INFO --concurrency=4 -Q ingest.discover,ingest.fetch,ingest.parse,normalize,geocode,dedup,default
 
   beat:
     build:
@@ -120,7 +120,32 @@ services:
       - ./src:/app/src
     command: celery -A worker.celery_app beat --loglevel=INFO
 
+  # Self-hosted geocoder. Optional — start with `--profile geo`.
+  # First boot imports the CZ extract (long: tens of minutes, several GB).
+  # Production seeds this with RÚIAN for rooftop precision; the dev image
+  # uses the plain Geofabrik extract. See docs/GEO.md.
+  nominatim:
+    image: mediagis/nominatim:4.4
+    profiles: ["geo"]
+    restart: unless-stopped
+    environment:
+      PBF_URL: https://download.geofabrik.de/europe/czech-republic-latest.osm.pbf
+      REPLICATION_URL: https://download.geofabrik.de/europe/czech-republic-updates/
+      IMPORT_STYLE: address
+      NOMINATIM_PASSWORD: ${NOMINATIM_PASSWORD:-nominatim_dev_password}
+    volumes:
+      - nominatim_data:/var/lib/postgresql/14/main
+    ports:
+      - "8001:8080"
+    shm_size: 1gb
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/status"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres_data:
   redis_data:
   minio_data:
+  nominatim_data:

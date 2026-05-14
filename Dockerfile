@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # to discover the packages declared by [tool.setuptools.packages.find].
 COPY pyproject.toml README.md ./
 COPY src ./src
+COPY tests ./tests
 COPY migrations ./migrations
 COPY alembic.ini ./alembic.ini
 

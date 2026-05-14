@@ -33,7 +33,7 @@ def readyz() -> dict[str, dict[str, str]]:
 
     # Redis
     try:
-        r = redis.from_url(settings.redis_url)
+        r = redis.Redis.from_url(settings.redis_url)
         r.ping()
         checks["redis"] = {"status": "ok"}
     except Exception as e:

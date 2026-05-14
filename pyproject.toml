@@ -47,6 +47,7 @@ dev = [
     "ruff>=0.7",
     "mypy>=1.13",
     "types-python-slugify",
+    "boto3-stubs[s3]",
 ]
 analytics = [
     "statsmodels>=0.14",
@@ -84,6 +85,12 @@ plugins = ["pydantic.mypy"]
 [[tool.mypy.overrides]]
 module = ["geoalchemy2.*", "celery.*"]
 ignore_missing_imports = true
+
+# Celery's task/signal decorators are untyped (celery.* has no stubs), which
+# under strict mode flags every decorated task. Allow it for worker modules.
+[[tool.mypy.overrides]]
+module = ["worker.*"]
+disallow_untyped_decorators = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

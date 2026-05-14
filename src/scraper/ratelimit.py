@@ -51,7 +51,7 @@ class TokenBucket:
         self.name = name
         self.rate = float(rate_per_sec)
         self.capacity = float(capacity if capacity is not None else max(rate_per_sec * 3, 3.0))
-        self._redis = redis.from_url(get_settings().redis_url)
+        self._redis = redis.Redis.from_url(get_settings().redis_url)
         self._script = self._redis.register_script(_LUA)
 
     def acquire(self, timeout_s: float = 30.0, poll_s: float = 0.1) -> None:

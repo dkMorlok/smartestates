@@ -9,7 +9,7 @@ from decimal import Decimal
 from typing import Any
 
 from celery import shared_task
-from sqlalchemy import select
+from sqlalchemy import delete, select
 
 from db.orm import Listing, Photo, RawListing
 from db.session import session_scope
@@ -110,7 +110,7 @@ def normalize_from_raw(raw_listing_id: int) -> dict[str, Any]:
             created = False
 
         # Photos: simple replace (Week 1). Phase 2 introduces phash + diff.
-        db.execute(Photo.__table__.delete().where(Photo.listing_id == listing_id))
+        db.execute(delete(Photo).where(Photo.listing_id == listing_id))
         for i, ph in enumerate(parsed.get("photos") or []):
             db.add(
                 Photo(

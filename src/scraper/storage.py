@@ -4,15 +4,19 @@ from __future__ import annotations
 import hashlib
 from datetime import datetime
 from functools import lru_cache
+from typing import TYPE_CHECKING
 
 import boto3
 from botocore.client import Config
 
 from shared.config import get_settings
 
+if TYPE_CHECKING:
+    from mypy_boto3_s3 import S3Client
+
 
 @lru_cache(maxsize=1)
-def _s3():
+def _s3() -> S3Client:
     settings = get_settings()
     return boto3.client(
         "s3",

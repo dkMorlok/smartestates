@@ -112,7 +112,7 @@ def discover(source_slug: str, params: dict[str, Any]) -> dict[str, Any]:
                 if latest is None or (
                     datetime.now(tz=UTC) - latest.fetched_at.replace(tzinfo=UTC)
                 ).total_seconds() > 86400:
-                    fetch.delay(  # type: ignore[attr-defined]
+                    fetch.delay(
                         source_slug,
                         ref.source_listing_id,
                         ref.url,
@@ -215,7 +215,7 @@ def fetch(
         raw_id = int(row.id)
 
     if not skip_parse:
-        parse.delay(raw_id)  # type: ignore[attr-defined]
+        parse.delay(raw_id)
 
     return {
         "raw_listing_id": raw_id,
@@ -286,7 +286,7 @@ def parse(raw_listing_id: int) -> dict[str, Any]:
         # Hand off to normalize stage (defined in normalize.py).
         from worker.tasks.normalize import normalize_from_raw
 
-        normalize_from_raw.delay(raw_listing_id)  # type: ignore[attr-defined]
+        normalize_from_raw.delay(raw_listing_id)
 
     return {
         "raw_listing_id": raw_listing_id,

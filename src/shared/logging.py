@@ -7,8 +7,10 @@ from __future__ import annotations
 import logging
 import sys
 from contextvars import ContextVar
+from typing import cast
 
 import structlog
+from structlog.typing import EventDict, Processor, WrappedLogger
 
 from shared.config import get_settings
 
@@ -17,7 +19,7 @@ request_id_var: ContextVar[str | None] = ContextVar("request_id", default=None)
 job_id_var: ContextVar[str | None] = ContextVar("job_id", default=None)
 
 
-def _inject_context(_: object, __: str, event_dict: dict[str, object]) -> dict[str, object]:
+def _inject_context(_: WrappedLogger, __: str, event_dict: EventDict) -> EventDict:
     rid = request_id_var.get()
     jid = job_id_var.get()
     if rid:
@@ -37,13 +39,14 @@ def configure_logging() -> None:
         level=level,
     )
 
-    shared_processors = [
+    shared_processors: list[Processor] = [
         structlog.contextvars.merge_contextvars,
         structlog.processors.add_log_level,
         structlog.processors.TimeStamper(fmt="iso", utc=True),
         _inject_context,
     ]
 
+    renderer: Processor
     if settings.app_env == "dev":
         renderer = structlog.dev.ConsoleRenderer(colors=True)
     else:
@@ -62,4 +65,4 @@ def configure_logging() -> None:
 
 
 def get_logger(name: str | None = None) -> structlog.stdlib.BoundLogger:
-    return structlog.get_logger(name)
+    return cast("structlog.stdlib.BoundLogger", structlog.get_logger(name))

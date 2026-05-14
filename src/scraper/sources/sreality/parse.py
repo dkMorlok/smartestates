@@ -168,7 +168,7 @@ def parse_sreality_detail(
     parsed = ParsedListing(
         source_slug="sreality",
         source_listing_id=hash_id,
-        canonical_url=canonical_url,  # type: ignore[arg-type]
+        canonical_url=canonical_url,
         fetched_at=fetched_at,
         listing_kind=ListingKind(listing_kind_str),
         property_type=PropertyType(property_type_str),

@@ -1,6 +1,7 @@
 """Listings API. Minimal Week-1 implementation; expands in Week 4."""
 from __future__ import annotations
 
+from collections.abc import Iterator
 from decimal import Decimal
 from typing import Annotated
 
@@ -15,7 +16,7 @@ from db.session import get_session_factory
 router = APIRouter(prefix="/listings", tags=["listings"])
 
 
-def get_db() -> Session:
+def get_db() -> Iterator[Session]:
     factory = get_session_factory()
     session = factory()
     try:

@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 import uuid
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 
 import sentry_sdk
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
@@ -49,7 +49,9 @@ def create_app() -> FastAPI:
     )
 
     @app.middleware("http")
-    async def attach_request_id(request: Request, call_next):
+    async def attach_request_id(
+        request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         rid = request.headers.get("x-request-id") or uuid.uuid4().hex
         token = request_id_var.set(rid)
         try:

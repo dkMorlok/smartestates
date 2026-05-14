@@ -1,0 +1,91 @@
+[project]
+name = "realitni-skener"
+version = "0.1.0"
+description = "Find undervalued real estate investment opportunities in CZ"
+requires-python = ">=3.12"
+readme = "README.md"
+
+dependencies = [
+    # web/api
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+
+    # db
+    "sqlalchemy>=2.0.36",
+    "alembic>=1.14",
+    "psycopg[binary,pool]>=3.2",
+    "geoalchemy2>=0.16",
+
+    # queue / cache
+    "celery[redis]>=5.4",
+    "redis>=5.2",
+
+    # http / scraping
+    "httpx>=0.27",
+    "tenacity>=9.0",
+    "selectolax>=0.3.25",
+
+    # storage
+    "boto3>=1.35",
+
+    # logging / obs
+    "structlog>=24.4",
+    "sentry-sdk[fastapi,celery,sqlalchemy]>=2.18",
+
+    # utils
+    "python-slugify>=8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=6.0",
+    "httpx>=0.27",
+    "ruff>=0.7",
+    "mypy>=1.13",
+    "types-python-slugify",
+]
+analytics = [
+    "statsmodels>=0.14",
+    "numpy>=2.0",
+    "pandas>=2.2",
+    "scikit-learn>=1.5",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "C4", "SIM", "RUF"]
+ignore = ["E501"]  # line length handled by formatter
+
+[tool.ruff.lint.per-file-ignores]
+"migrations/**" = ["E", "F", "I", "UP"]
+"tests/**" = ["B"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_ignores = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["geoalchemy2.*", "celery.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-ra --strict-markers"

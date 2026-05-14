@@ -23,7 +23,7 @@ def _safe_decimal(v: Any) -> Decimal | None:
         return None
     try:
         return Decimal(str(v))
-    except Exception:  # noqa: BLE001
+    except Exception:
         return None
 
 
@@ -62,37 +62,37 @@ def normalize_from_raw(raw_listing_id: int) -> dict[str, Any]:
             if parsed.get(k) is not None
         }
 
-        common_fields = dict(
-            source_id=row.source_id,
-            source_listing_id=row.source_listing_id,
-            canonical_url=parsed["canonical_url"],
-            last_seen_at=now,
-            status=parsed.get("status", "active"),
-            price=_safe_decimal(parsed.get("price_czk")),
-            currency=parsed.get("currency", "CZK"),
-            price_hidden=bool(parsed.get("price_hidden")),
-            size_m2=_safe_decimal(parsed.get("size_m2")),
-            usable_area_m2=_safe_decimal(parsed.get("usable_area_m2")),
-            land_area_m2=_safe_decimal(parsed.get("land_area_m2")),
-            rooms=parsed.get("rooms"),
-            bathrooms=parsed.get("bathrooms"),
-            floor_current=parsed.get("floor_current"),
-            floor_total=parsed.get("floor_total"),
-            year_built=parsed.get("year_built"),
-            property_type=parsed["property_type"],
-            disposition=parsed.get("disposition"),
-            ownership_type=parsed.get("ownership_type"),
-            building_type=parsed.get("building_type"),
-            condition=parsed.get("condition"),
-            energy_class=parsed.get("energy_class"),
-            features_jsonb=features,
-            description=parsed.get("description"),
-            agency=parsed.get("agency"),
-            agent_name=parsed.get("agent_name"),
-            is_owner_direct=parsed.get("is_owner_direct"),
-            raw_listing_id=raw_listing_id,
-            parser_version=parsed.get("parser_version"),
-        )
+        common_fields = {
+            "source_id": row.source_id,
+            "source_listing_id": row.source_listing_id,
+            "canonical_url": parsed["canonical_url"],
+            "last_seen_at": now,
+            "status": parsed.get("status", "active"),
+            "price": _safe_decimal(parsed.get("price_czk")),
+            "currency": parsed.get("currency", "CZK"),
+            "price_hidden": bool(parsed.get("price_hidden")),
+            "size_m2": _safe_decimal(parsed.get("size_m2")),
+            "usable_area_m2": _safe_decimal(parsed.get("usable_area_m2")),
+            "land_area_m2": _safe_decimal(parsed.get("land_area_m2")),
+            "rooms": parsed.get("rooms"),
+            "bathrooms": parsed.get("bathrooms"),
+            "floor_current": parsed.get("floor_current"),
+            "floor_total": parsed.get("floor_total"),
+            "year_built": parsed.get("year_built"),
+            "property_type": parsed["property_type"],
+            "disposition": parsed.get("disposition"),
+            "ownership_type": parsed.get("ownership_type"),
+            "building_type": parsed.get("building_type"),
+            "condition": parsed.get("condition"),
+            "energy_class": parsed.get("energy_class"),
+            "features_jsonb": features,
+            "description": parsed.get("description"),
+            "agency": parsed.get("agency"),
+            "agent_name": parsed.get("agent_name"),
+            "is_owner_direct": parsed.get("is_owner_direct"),
+            "raw_listing_id": raw_listing_id,
+            "parser_version": parsed.get("parser_version"),
+        }
 
         if existing is None:
             listing = Listing(

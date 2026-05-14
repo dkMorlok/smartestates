@@ -7,11 +7,10 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Any
+from typing import Any, ClassVar
 
 from geoalchemy2 import Geography
 from sqlalchemy import (
-    JSON,
     BigInteger,
     Boolean,
     CheckConstraint,
@@ -33,7 +32,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 class Base(DeclarativeBase):
     """Project base. All models inherit from this."""
 
-    type_annotation_map = {
+    type_annotation_map: ClassVar = {
         dict[str, Any]: JSONB,
     }
 
@@ -135,7 +134,7 @@ class Property(Base):
         Index("ix_property_district_locality", "city_district", "locality"),
     )
 
-    listings: Mapped[list["Listing"]] = relationship(back_populates="property_ref")
+    listings: Mapped[list[Listing]] = relationship(back_populates="property_ref")
 
 
 class Listing(Base):
@@ -193,7 +192,7 @@ class Listing(Base):
     )
 
     property_ref: Mapped[Property | None] = relationship(back_populates="listings")
-    photos: Mapped[list["Photo"]] = relationship(
+    photos: Mapped[list[Photo]] = relationship(
         back_populates="listing", cascade="all, delete-orphan"
     )
 

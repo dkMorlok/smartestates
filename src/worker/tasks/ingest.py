@@ -121,7 +121,7 @@ def discover(source_slug: str, params: dict[str, Any]) -> dict[str, Any]:
                     enqueued += 1
                 else:
                     skipped += 1
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         _finish_run(
             run_id,
             "failed",
@@ -264,7 +264,7 @@ def parse(raw_listing_id: int) -> dict[str, Any]:
     parsed: ParsedListing | None = None
     try:
         parsed = source.parse(raw_doc)
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         parse_status = "quarantine"
         parse_error = f"{type(e).__name__}: {e}"[:1000]
         log.warning(

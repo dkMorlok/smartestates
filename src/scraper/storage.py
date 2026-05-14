@@ -12,7 +12,7 @@ from shared.config import get_settings
 
 
 @lru_cache(maxsize=1)
-def _s3():  # noqa: ANN202
+def _s3():
     settings = get_settings()
     return boto3.client(
         "s3",

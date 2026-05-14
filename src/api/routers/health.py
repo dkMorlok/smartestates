@@ -28,7 +28,7 @@ def readyz() -> dict[str, dict[str, str]]:
         with get_engine().connect() as conn:
             conn.execute(text("SELECT 1"))
         checks["postgres"] = {"status": "ok"}
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         checks["postgres"] = {"status": "error", "detail": str(e)[:200]}
 
     # Redis
@@ -36,7 +36,7 @@ def readyz() -> dict[str, dict[str, str]]:
         r = redis.from_url(settings.redis_url)
         r.ping()
         checks["redis"] = {"status": "ok"}
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         checks["redis"] = {"status": "error", "detail": str(e)[:200]}
 
     return checks

@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 import uuid
-from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 import sentry_sdk
 from fastapi import FastAPI, Request
@@ -17,7 +17,7 @@ from shared.logging import configure_logging, get_logger, request_id_var
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncIterator[None]:  # noqa: ARG001
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     configure_logging()
     settings = get_settings()
     if settings.sentry_dsn:
@@ -49,7 +49,7 @@ def create_app() -> FastAPI:
     )
 
     @app.middleware("http")
-    async def attach_request_id(request: Request, call_next):  # noqa: ANN001, ANN201
+    async def attach_request_id(request: Request, call_next):
         rid = request.headers.get("x-request-id") or uuid.uuid4().hex
         token = request_id_var.set(rid)
         try:

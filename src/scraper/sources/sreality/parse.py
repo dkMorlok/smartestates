@@ -28,7 +28,7 @@ from shared.normalize import (
     parse_floor,
     parse_ownership,
 )
-from shared.schemas import GeoPoint, ParsedListing, ParsedPhoto
+from shared.schemas import GeoPoint, ParsedListing
 
 from .item_map import (
     CATEGORY_MAIN_TO_PROPERTY_TYPE,

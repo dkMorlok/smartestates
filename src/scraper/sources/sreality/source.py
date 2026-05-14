@@ -185,7 +185,7 @@ class SrealitySource(Source):
             if not estates:
                 return SourceHealth(ok=False, detail="empty estates list")
             return SourceHealth(ok=True, detail=f"hash_id={estates[0].get('hash_id')}")
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             return SourceHealth(ok=False, detail=str(e)[:200])
 
     # ----- helpers ------------------------------------------------------

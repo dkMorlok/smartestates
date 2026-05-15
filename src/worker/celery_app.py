@@ -39,6 +39,7 @@ celery_app.conf.update(
         "geocode.listing": {"queue": "geocode"},
         "dedup.tier1": {"queue": "dedup"},
         "scoring.materialize_segments_and_stats": {"queue": "scoring"},
+        "scoring.score_active_listings": {"queue": "scoring"},
         "ops.source_canary": {"queue": "default"},
     },
     task_default_retry_delay=60,
@@ -66,6 +67,14 @@ celery_app.conf.beat_schedule = {
         "task": "scoring.materialize_segments_and_stats",
         "schedule": crontab(minute=30, hour=3),
         "args": ("Praha",),
+        "options": {"queue": "scoring"},
+    },
+    "nightly-score-active-listings": {
+        # 04:00 Europe/Prague per docs/SCORING.md; segment stats finish by 03:55
+        # in nightly so this run sees today's market_stat refresh.
+        "task": "scoring.score_active_listings",
+        "schedule": crontab(minute=0, hour=4),
+        "args": ("Praha", "v1"),
         "options": {"queue": "scoring"},
     },
 }

@@ -40,3 +40,13 @@ export function humanize(value: string | null): string {
   if (!value) return EM_DASH;
   return value.replace(/_/g, " ");
 }
+
+/** Format a percentage score with sign, e.g. "−12 %" or "+4 %". */
+export function formatScorePct(value: Decimalish): string {
+  const n = toNumber(value);
+  if (n === null) return EM_DASH;
+  const rounded = Math.round(n);
+  // Use Unicode minus sign for visual consistency with the rest of the UI.
+  const sign = rounded > 0 ? "+" : rounded < 0 ? "−" : "";
+  return `${sign}${Math.abs(rounded)} %`;
+}

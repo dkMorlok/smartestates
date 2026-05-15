@@ -20,6 +20,16 @@ export interface ListingSummary {
   status: string;
   lat: number | null;
   lon: number | null;
+  // Joined from latest score (optional — server may not include this yet).
+  // See Week 5d: /v1/listings score join.
+  score?: ListingScoreSummary | null;
+}
+
+// Minimal score view that travels with each ListingSummary row.
+export interface ListingScoreSummary {
+  composite: Decimalish;
+  undervaluation_pct: Decimalish;
+  confidence_score: Decimalish;
 }
 
 export interface ListingPage {
@@ -123,4 +133,26 @@ export interface MapResponse {
   mode: "pins" | "clusters";
   pins: MapPin[];
   clusters: MapCluster[];
+}
+
+// ---------------------------------------------------------------------------
+// Score
+// ---------------------------------------------------------------------------
+
+// /v1/listings/{id}/score. Numerics arrive as Decimal-strings; coerce on use.
+export interface ListingScore {
+  listing_id: number;
+  model_version: string;
+  computed_at: string;
+  composite: Decimalish;
+  undervaluation_pct: Decimalish;
+  undervaluation_abs: Decimalish;
+  yield_gross_pct: Decimalish;
+  yield_confidence: Decimalish;
+  liquidity_score: Decimalish;
+  location_score: Decimalish;
+  risk_score: Decimalish;
+  confidence_score: Decimalish;
+  risk_flags: string[];
+  components: Record<string, unknown>;
 }

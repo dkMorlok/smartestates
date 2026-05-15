@@ -17,6 +17,7 @@ import {
 } from "@/lib/format";
 import type { ListingQuery, ListingSummary } from "@/lib/types";
 import { useListings } from "@/lib/use-listings";
+import { ScoreBadge } from "./score-badge";
 
 const columnHelper = createColumnHelper<ListingSummary>();
 
@@ -38,6 +39,33 @@ const columns = [
     header: "Cena / m²",
     cell: (c) =>
       formatPricePerM2(c.row.original.price_czk, c.row.original.size_m2),
+  }),
+  columnHelper.display({
+    id: "score",
+    header: "Skóre",
+    // TODO(Week 5d): fed by /v1/listings score join. Until the API includes
+    // `score` on each row, this cell renders the null-state badge ("n/a").
+    cell: (c) => {
+      const score = c.row.original.score;
+      const composite =
+        score?.composite === undefined ? null : (score.composite as number | string | null);
+      const under =
+        score?.undervaluation_pct === undefined
+          ? null
+          : (score.undervaluation_pct as number | string | null);
+      const conf =
+        score?.confidence_score === undefined
+          ? null
+          : (score.confidence_score as number | string | null);
+      return (
+        <ScoreBadge
+          size="sm"
+          composite={composite}
+          undervaluationPct={under}
+          confidence={conf}
+        />
+      );
+    },
   }),
   columnHelper.accessor("ownership_type", {
     header: "Vlastnictví",

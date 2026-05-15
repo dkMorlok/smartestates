@@ -3,6 +3,7 @@ import type {
   ListingDetail,
   ListingPage,
   ListingQuery,
+  ListingScore,
   MapResponse,
 } from "./types";
 
@@ -43,6 +44,24 @@ export async function fetchListing(id: number): Promise<ListingDetail | null> {
     throw new Error(`Listing ${id} request failed: ${res.status}`);
   }
   return (await res.json()) as ListingDetail;
+}
+
+/**
+ * Fetch a listing's score. Returns null on 404 (no confident score yet — UI
+ * renders a neutral "not computed" state, not an error).
+ */
+export async function fetchListingScore(
+  id: number,
+): Promise<ListingScore | null> {
+  const res = await fetch(`${API_BASE}/v1/listings/${id}/score`, {
+    headers: { Accept: "application/json" },
+    cache: "no-store",
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    throw new Error(`Listing ${id} score request failed: ${res.status}`);
+  }
+  return (await res.json()) as ListingScore;
 }
 
 export async function fetchMapListings(

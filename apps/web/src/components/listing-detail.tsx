@@ -1,10 +1,12 @@
-import type { ListingDetail } from "@/lib/types";
+import type { ListingDetail, ListingScore } from "@/lib/types";
 import {
   formatArea,
   formatPriceCZK,
   formatPricePerM2,
   humanize,
 } from "@/lib/format";
+import { RiskFlags } from "./risk-flags";
+import { ScoreBadge } from "./score-badge";
 
 const DASH = "—";
 
@@ -31,7 +33,64 @@ function formatFloor(current: number | null, total: number | null): string | nul
   return `${current} / ${total}`;
 }
 
-export function ListingDetailView({ listing }: { listing: ListingDetail }) {
+function ScoreSection({ score }: { score: ListingScore | null }) {
+  return (
+    <section
+      aria-labelledby="score-heading"
+      className="rounded-md border border-neutral-200 p-4"
+    >
+      <h2
+        id="score-heading"
+        className="mb-2 text-sm font-semibold text-neutral-700"
+      >
+        Skóre
+      </h2>
+      {score === null ? (
+        <p className="text-sm text-neutral-500">
+          Skóre ještě nebylo vypočítáno.
+        </p>
+      ) : (
+        <div className="space-y-3">
+          <ScoreBadge
+            size="md"
+            composite={score.composite as number | string | null}
+            undervaluationPct={
+              score.undervaluation_pct as number | string | null
+            }
+            confidence={score.confidence_score as number | string | null}
+          />
+          <RiskFlags flags={score.risk_flags} />
+          <p className="text-xs text-neutral-500">
+            Model {score.model_version}, vypočteno{" "}
+            <time dateTime={score.computed_at}>
+              {formatComputedAt(score.computed_at)}
+            </time>
+            .
+          </p>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function formatComputedAt(iso: string): string {
+  // Render in cs-CZ; fall back to the raw ISO string if it isn't parseable.
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return new Intl.DateTimeFormat("cs-CZ", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(d);
+}
+
+export function ListingDetailView({
+  listing,
+  score,
+}: {
+  listing: ListingDetail;
+  /** null means the API returned 404 — neutral "not computed" state. */
+  score: ListingScore | null;
+}) {
   const place = [listing.city_district, listing.locality]
     .filter((s): s is string => Boolean(s))
     .join(" · ");
@@ -56,6 +115,8 @@ export function ListingDetailView({ listing }: { listing: ListingDetail }) {
           Otevřít na {listing.source_slug} →
         </a>
       </header>
+
+      <ScoreSection score={score} />
 
       {listing.photos.length > 0 && (
         <section className="flex gap-2 overflow-x-auto">

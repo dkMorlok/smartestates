@@ -55,6 +55,8 @@ from scoring.hedonic import (
     predict_log_ppm2,
     undervaluation_pct,
 )
+from scoring.liquidity import LiquidityInputs, compute_liquidity_score
+from scoring.location import LocationInputs, compute_location
 from scoring.risks import (
     RiskInputs,
     SegmentRefs,
@@ -70,6 +72,7 @@ from scoring.segments import (
     segment_key_for,
 )
 from scoring.stats import PpmStats, compute_ppm2_stats, ppm2
+from scoring.yield_est import YieldInputs, compute_yield
 from shared.logging import get_logger
 
 log = get_logger("worker.scoring")
@@ -583,12 +586,56 @@ def score_active_listings(
                 freshness_days=freshness_days,
             )
 
+            # Liquidity: uses segment DOM. Turnover not yet computed → module
+            # imputes a neutral default so the score is still meaningful.
+            dom_median = (
+                float(stat.dom_median_days)
+                if stat is not None and stat.dom_median_days is not None
+                else None
+            )
+            liquidity = compute_liquidity_score(
+                LiquidityInputs(dom_median_days=dom_median, turnover_quarterly=None)
+            )
+
+            # Yield: uses segment rent ppm². We don't ingest rentals yet, so
+            # rent_ppm2_median is typically None → compute_yield returns
+            # yield=None, confidence=0 (correct: do not fabricate).
+            rent_ppm2 = (
+                float(stat.rent_ppm2_median)
+                if stat is not None and stat.rent_ppm2_median is not None
+                else None
+            )
+            yield_result = compute_yield(
+                YieldInputs(
+                    asking_price_czk=listing.price,
+                    size_m2=listing.size_m2,
+                    hoa_czk_per_month_known=None,
+                    rent_ppm2_per_month_trimmed_mean=rent_ppm2,
+                    rental_n_comps=sample_size if rent_ppm2 is not None else 0,
+                    relaxation_level=relaxation_level,
+                )
+            )
+
+            # Location: no per-listing distance signals yet (GTFS/OSM is a
+            # later slice). Module returns all-None breakdown so the
+            # location_score column stays NULL until data lands.
+            location = compute_location(
+                LocationInputs(
+                    distance_to_metro_m=None,
+                    distance_to_tram_m=None,
+                    distance_to_train_m=None,
+                    amenity_counts=None,
+                    distance_to_park_m=None,
+                    distance_to_major_road_m=None,
+                )
+            )
+
             comp_inputs = CompositeInputs(
                 undervaluation_pct=uv_pct,
-                yield_gross_pct=None,
-                yield_confidence=None,
-                liquidity_score=None,
-                location_score=None,
+                yield_gross_pct=yield_result.yield_gross_pct,
+                yield_confidence=yield_result.yield_confidence,
+                liquidity_score=liquidity,
+                location_score=location.composite,
                 risk_score=risk,
             )
             try:
@@ -607,10 +654,10 @@ def score_active_listings(
                 segment_id=segment_id,
                 undervaluation_pct=_dec(uv_pct, 3),
                 undervaluation_abs=_dec(uv_abs, 2),
-                yield_gross_pct=None,
-                yield_confidence=None,
-                liquidity_score=None,
-                location_score=None,
+                yield_gross_pct=_dec(yield_result.yield_gross_pct, 2),
+                yield_confidence=_dec(yield_result.yield_confidence, 3),
+                liquidity_score=_dec(liquidity, 2),
+                location_score=_dec(location.composite, 2),
                 risk_score=_dec(risk, 2),
                 confidence_score=_dec(confidence, 3),
                 composite=_dec(composite, 2),
@@ -623,6 +670,15 @@ def score_active_listings(
                     "freshness_days": freshness_days,
                     "hedonic_fit": listing_gkey is not None
                     and models.get(listing_gkey) is not None,
+                    "monthly_rent_estimate_czk": yield_result.monthly_rent_estimate_czk,
+                    "annual_hoa_estimate_czk": yield_result.annual_hoa_estimate_czk,
+                    "used_default_hoa": yield_result.used_default_hoa,
+                    "location_breakdown": {
+                        "transit": location.transit,
+                        "amenities": location.amenities,
+                        "green": location.green,
+                        "quiet": location.quiet,
+                    },
                 },
                 risk_flags=flags,
             )

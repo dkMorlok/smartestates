@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { ListingDetailView } from "@/components/listing-detail";
-import { fetchListing } from "@/lib/api";
+import { fetchListing, fetchListingScore } from "@/lib/api";
 
 // Detail data is dynamic — no static prerendering.
 export const dynamic = "force-dynamic";
@@ -16,9 +16,14 @@ export default async function ListingDetailPage({
   if (!Number.isInteger(numericId) || numericId <= 0) {
     notFound();
   }
-  const listing = await fetchListing(numericId);
+  // Fetch the listing and its score in parallel. A failed score fetch must
+  // not break the page — we degrade to the "not computed" neutral state.
+  const [listing, score] = await Promise.all([
+    fetchListing(numericId),
+    fetchListingScore(numericId).catch(() => null),
+  ]);
   if (listing === null) {
     notFound();
   }
-  return <ListingDetailView listing={listing} />;
+  return <ListingDetailView listing={listing} score={score} />;
 }

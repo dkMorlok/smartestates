@@ -31,6 +31,11 @@ dependencies = [
     "pyproj>=3.6",
     "shapely>=2.0",
 
+    # analytics / scoring (Week 5)
+    "numpy>=2.0",
+    "pandas>=2.2",
+    "statsmodels>=0.14",
+
     # storage
     "boto3>=1.35",
 
@@ -54,9 +59,8 @@ dev = [
     "boto3-stubs[s3]",
 ]
 analytics = [
-    "statsmodels>=0.14",
-    "numpy>=2.0",
-    "pandas>=2.2",
+    # numpy / pandas / statsmodels are required deps now (Week 5 scoring).
+    # scikit-learn stays optional — only some experimental notebooks use it.
     "scikit-learn>=1.5",
 ]
 
@@ -87,7 +91,7 @@ warn_unused_ignores = true
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["geoalchemy2.*", "celery.*", "pyproj.*"]
+module = ["geoalchemy2.*", "celery.*", "pyproj.*", "statsmodels.*"]
 ignore_missing_imports = true
 
 # Celery's task/signal decorators are untyped (celery.* has no stubs), which

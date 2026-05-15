@@ -19,6 +19,7 @@ celery_app = Celery(
         "worker.tasks.normalize",
         "worker.tasks.geocode",
         "worker.tasks.dedup",
+        "worker.tasks.scoring",
         "worker.tasks.ops",
     ],
 )
@@ -37,6 +38,7 @@ celery_app.conf.update(
         "normalize.from_raw": {"queue": "normalize"},
         "geocode.listing": {"queue": "geocode"},
         "dedup.tier1": {"queue": "dedup"},
+        "scoring.materialize_segments_and_stats": {"queue": "scoring"},
         "ops.source_canary": {"queue": "default"},
     },
     task_default_retry_delay=60,
@@ -59,6 +61,12 @@ celery_app.conf.beat_schedule = {
         "task": "ops.source_canary",
         "schedule": crontab(minute=0, hour="*"),
         "args": ("sreality",),
+    },
+    "nightly-segments-stats": {
+        "task": "scoring.materialize_segments_and_stats",
+        "schedule": crontab(minute=30, hour=3),
+        "args": ("Praha",),
+        "options": {"queue": "scoring"},
     },
 }
 

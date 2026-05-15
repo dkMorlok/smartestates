@@ -103,7 +103,7 @@ services:
         condition: service_completed_successfully
     volumes:
       - ./src:/app/src
-    command: celery -A worker.celery_app worker --loglevel=INFO --concurrency=4 -Q ingest.discover,ingest.fetch,ingest.parse,normalize,geocode,dedup,default
+    command: celery -A worker.celery_app worker --loglevel=INFO --concurrency=4 -Q ingest.discover,ingest.fetch,ingest.parse,normalize,geocode,dedup,scoring,default
 
   beat:
     build:

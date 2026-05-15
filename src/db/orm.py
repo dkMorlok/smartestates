@@ -5,7 +5,7 @@ ingestion is fully fleshed out; scoring/score tables are stubs.
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Any, ClassVar
 
@@ -331,6 +331,39 @@ class RuianAddress(Base):
     )
 
     __table_args__ = (Index("ix_ruian_address_obec", "kod_obce"),)
+
+
+class MarketStat(Base):
+    """Per-segment ppm² statistics computed nightly from active listings."""
+
+    __tablename__ = "market_stat"
+
+    segment_id: Mapped[int] = mapped_column(
+        ForeignKey("market_segment.id", ondelete="CASCADE"), primary_key=True
+    )
+    as_of_date: Mapped[date] = mapped_column(primary_key=True)
+    n_samples: Mapped[int] = mapped_column(Integer)
+    ppm2_median: Mapped[Decimal | None] = mapped_column(Numeric(14, 2))
+    ppm2_trimmed_mean: Mapped[Decimal | None] = mapped_column(Numeric(14, 2))
+    ppm2_p25: Mapped[Decimal | None] = mapped_column(Numeric(14, 2))
+    ppm2_p75: Mapped[Decimal | None] = mapped_column(Numeric(14, 2))
+    ppm2_stddev: Mapped[Decimal | None] = mapped_column(Numeric(14, 2))
+    dom_median_days: Mapped[Decimal | None] = mapped_column(Numeric(8, 2))
+    rent_ppm2_median: Mapped[Decimal | None] = mapped_column(Numeric(14, 2))
+    relaxation_level: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class ScoringConfig(Base):
+    """Composite-score weights, versioned by model_version. See SCORING.md."""
+
+    __tablename__ = "scoring_config"
+
+    model_version: Mapped[str] = mapped_column(String(32), primary_key=True)
+    weights_jsonb: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    notes: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
 
 
 class Score(Base):

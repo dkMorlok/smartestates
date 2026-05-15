@@ -161,6 +161,7 @@ class _Filters(TypedDict):
     disposition: str | None
     ownership_type: str | None
     city_district: str | None
+    locality: str | None
     min_price: int | None
     max_price: int | None
     min_size: int | None
@@ -175,6 +176,7 @@ def _apply_filters(
     disposition: str | None,
     ownership_type: str | None,
     city_district: str | None,
+    locality: str | None,
     min_price: int | None,
     max_price: int | None,
     min_size: int | None,
@@ -195,10 +197,12 @@ def _apply_filters(
         stmt = stmt.where(Listing.size_m2 >= min_size)
     if max_size is not None:
         stmt = stmt.where(Listing.size_m2 <= max_size)
-    if city_district:
-        stmt = stmt.join(Property, Listing.property_id == Property.id).where(
-            Property.city_district == city_district
-        )
+    if city_district or locality:
+        stmt = stmt.join(Property, Listing.property_id == Property.id)
+        if city_district:
+            stmt = stmt.where(Property.city_district == city_district)
+        if locality:
+            stmt = stmt.where(Property.locality == locality)
     return stmt
 
 
@@ -217,6 +221,7 @@ def list_listings(
     disposition: str | None = None,
     ownership_type: str | None = None,
     city_district: str | None = None,
+    locality: str | None = None,
     min_price: int | None = Query(None, ge=0),
     max_price: int | None = Query(None, ge=0),
     min_size: int | None = Query(None, ge=0),
@@ -229,6 +234,7 @@ def list_listings(
         "disposition": disposition,
         "ownership_type": ownership_type,
         "city_district": city_district,
+        "locality": locality,
         "min_price": min_price,
         "max_price": max_price,
         "min_size": min_size,

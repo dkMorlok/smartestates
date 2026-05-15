@@ -19,6 +19,12 @@ export function Nav() {
         >
           Mapa
         </Link>
+        <Link
+          href="/analytics"
+          className="font-medium text-neutral-600 hover:text-neutral-900"
+        >
+          Analytika
+        </Link>
       </div>
     </nav>
   );

@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
-from api.routers import health, listings, scores
+from api.routers import analytics, health, listings, scores
 from shared.config import get_settings
 from shared.logging import configure_logging, get_logger, request_id_var
 
@@ -64,6 +64,7 @@ def create_app() -> FastAPI:
     app.include_router(health.router)
     app.include_router(listings.router, prefix="/v1")
     app.include_router(scores.router, prefix="/v1")
+    app.include_router(analytics.router, prefix="/v1")
     return app
 
 

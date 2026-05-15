@@ -93,26 +93,54 @@ def parse_sreality_detail(
     listing_kind_str = CATEGORY_TYPE_TO_LISTING_KIND.get(category_type, "prodej")
 
     # ---- price ----
-    price_czk = _to_int(detail.get("price_czk")) or _to_int(detail.get("price"))
+    # Sreality returns price_czk as a dict ({"value_raw": 8690000, ...}) when
+    # the price is published, or {} for "Informace o ceně na dotaz" listings.
+    # Detail responses leave top-level `price` null; discovery results carry
+    # a plain int there. Handle both shapes.
+    pcz_raw = detail.get("price_czk")
+    if isinstance(pcz_raw, dict):
+        price_czk = _to_int(pcz_raw.get("value_raw"))
+    else:
+        price_czk = _to_int(pcz_raw)
+    if price_czk is None:
+        price_czk = _to_int(detail.get("price"))
     price_hidden = bool(detail.get("price_hidden")) or price_czk in (None, 0, 1)
     if price_hidden:
         price_czk = None
 
     # ---- location ----
-    gps = detail.get("gps") or {}
+    # Sreality returns coordinates inside `map.lat`/`map.lon` (the literal
+    # `gps` field is null in the modern API). Older fixtures still ship
+    # `gps`, so accept both.
     geo: GeoPoint | None = None
-    if "lat" in gps and "lon" in gps:
-        try:
-            geo = GeoPoint(
-                lat=float(gps["lat"]),
-                lon=float(gps["lon"]),
-                precision=AddressPrecision.SOURCE_GPS,
-            )
-        except (TypeError, ValueError):
-            geo = None
+    for key in ("gps", "map"):
+        src = detail.get(key) or {}
+        if isinstance(src, dict) and src.get("lat") is not None and src.get("lon") is not None:
+            try:
+                geo = GeoPoint(
+                    lat=float(src["lat"]),
+                    lon=float(src["lon"]),
+                    precision=AddressPrecision.SOURCE_GPS,
+                )
+                break
+            except (TypeError, ValueError):
+                continue
 
     locality_obj = detail.get("locality") or {}
     locality_str = locality_obj.get("value") if isinstance(locality_obj, dict) else None
+    # locality.value looks like "Běhounkova, Praha 5 - Stodůlky" or
+    # "Toyen, Praha 5 - Smíchov". Split out city_district (left of " - ")
+    # and locality (right) from the part after the first comma.
+    city_district: str | None = None
+    locality_neighborhood: str | None = locality_str
+    if locality_str and "," in locality_str:
+        tail = locality_str.split(",", 1)[1].strip()
+        if " - " in tail:
+            cd, _, loc = tail.partition(" - ")
+            city_district = cd.strip() or None
+            locality_neighborhood = loc.strip() or locality_str
+        else:
+            city_district = tail or None
 
     # ---- text/description ----
     text_obj = detail.get("text") or {}
@@ -187,7 +215,8 @@ def parse_sreality_detail(
         condition=parse_condition(fields.get("condition_raw")),
         energy_class=parse_energy_class(fields.get("energy_class_raw")),
         address_raw=locality_str,
-        locality=locality_str,
+        locality=locality_neighborhood,
+        city_district=city_district,
         postcode=fields.get("postcode"),
         geo=geo,
         has_balcony=_to_bool(feats.get("has_balcony")),

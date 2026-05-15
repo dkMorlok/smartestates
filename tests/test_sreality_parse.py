@@ -114,6 +114,62 @@ class TestSrealityParse:
         assert p.price_hidden is True
         assert p.price_czk is None
 
+    def test_price_on_request_empty_dict(self) -> None:
+        # Real "Cena na dotaz" listings come back with price_czk={} and
+        # price=None; both must collapse to price_hidden=True.
+        d = make_detail(price=None, price_czk={})
+        p = parse_sreality_detail(
+            d,
+            hash_id="55555",
+            canonical_url="https://www.sreality.cz/detail/prodej/byt/55555",
+        )
+        assert p.price_hidden is True
+        assert p.price_czk is None
+
+    def test_geo_from_map_field(self) -> None:
+        # Modern Sreality detail JSON returns coords under `map.lat`/`map.lon`;
+        # the literal `gps` field is null. Make sure we still pick the point up.
+        d = make_detail()
+        d.pop("gps", None)
+        d["map"] = {"lat": 50.0528, "lon": 14.3374, "type": "coordinates", "zoom": 14}
+        p = parse_sreality_detail(
+            d,
+            hash_id="77777",
+            canonical_url="https://www.sreality.cz/detail/prodej/byt/77777",
+        )
+        assert p.geo is not None
+        assert pytest.approx(p.geo.lat, abs=0.001) == 50.0528
+        assert pytest.approx(p.geo.lon, abs=0.001) == 14.3374
+
+    def test_locality_split_into_city_district(self) -> None:
+        # locality.value "Toyen, Praha 5 - Smíchov" should split into
+        # city_district="Praha 5" and locality="Smíchov".
+        d = make_detail()
+        d["locality"] = {
+            "name": "Adresa",
+            "value": "Toyen, Praha 5 - Smíchov",
+            "accuracy": "address",
+        }
+        p = parse_sreality_detail(
+            d,
+            hash_id="88888",
+            canonical_url="https://www.sreality.cz/detail/prodej/byt/88888",
+        )
+        assert p.city_district == "Praha 5"
+        assert p.locality == "Smíchov"
+
+    def test_price_from_dict_value_raw(self) -> None:
+        # Real published listings carry the price in price_czk.value_raw with
+        # top-level price=None; verify the dict path picks the integer up.
+        d = make_detail(price=None, price_czk={"value_raw": 8_690_000, "name": "Celková cena"})
+        p = parse_sreality_detail(
+            d,
+            hash_id="66666",
+            canonical_url="https://www.sreality.cz/detail/prodej/byt/66666",
+        )
+        assert p.price_czk == 8_690_000
+        assert p.price_hidden is False
+
     def test_unknown_item_goes_to_extras(self) -> None:
         d = make_detail()
         d["items"].append({"name": "Vymyšlený atribut", "value": "neco", "type": "string"})

@@ -1,5 +1,7 @@
 import type {
   BBox,
+  BreakdownQuery,
+  BreakdownResponse,
   ListingDetail,
   ListingPage,
   ListingQuery,
@@ -62,6 +64,20 @@ export async function fetchListingScore(
     throw new Error(`Listing ${id} score request failed: ${res.status}`);
   }
   return (await res.json()) as ListingScore;
+}
+
+export async function fetchBreakdown(
+  query: BreakdownQuery,
+): Promise<BreakdownResponse> {
+  const qs = toSearchParams(query);
+  const res = await fetch(
+    `${API_BASE}/v1/analytics/breakdown${qs ? `?${qs}` : ""}`,
+    { headers: { Accept: "application/json" }, cache: "no-store" },
+  );
+  if (!res.ok) {
+    throw new Error(`Breakdown request failed: ${res.status} ${res.statusText}`);
+  }
+  return (await res.json()) as BreakdownResponse;
 }
 
 export async function fetchMapListings(

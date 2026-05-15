@@ -48,6 +48,7 @@ export interface ListingQuery {
   disposition?: string;
   ownership_type?: string;
   city_district?: string;
+  locality?: string;
   min_price?: number;
   max_price?: number;
   min_size?: number;
@@ -138,6 +139,44 @@ export interface MapResponse {
 // ---------------------------------------------------------------------------
 // Score
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Analytics (breakdown)
+// ---------------------------------------------------------------------------
+
+export type GroupBy = "disposition" | "locality";
+
+export interface BreakdownRow {
+  group_key: string;
+  count: number;
+  avg_price_czk: Decimalish;
+  min_price_czk: Decimalish;
+  max_price_czk: Decimalish;
+  avg_ppm2: Decimalish;
+  median_ppm2: Decimalish;
+  median_ppm2_180d_ago: Decimalish;
+  change_pct_6m: number | null;
+  centroid_lat: number | null;
+  centroid_lon: number | null;
+}
+
+export interface BreakdownResponse {
+  group_by: GroupBy;
+  rows: BreakdownRow[];
+}
+
+// Query params accepted by GET /v1/analytics/breakdown.
+export interface BreakdownQuery {
+  group_by?: GroupBy;
+  property_type?: string;
+  disposition?: string;
+  ownership_type?: string;
+  city_district?: string;
+  min_price?: number;
+  max_price?: number;
+  min_size?: number;
+  max_size?: number;
+}
 
 // /v1/listings/{id}/score. Numerics arrive as Decimal-strings; coerce on use.
 export interface ListingScore {

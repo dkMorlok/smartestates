@@ -1,13 +1,19 @@
-import type { ListingPage, ListingQuery } from "./types";
+import type {
+  BBox,
+  ListingDetail,
+  ListingPage,
+  ListingQuery,
+  MapResponse,
+} from "./types";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ??
   "http://localhost:8000";
 
-/** Build a query string from defined ListingQuery fields only. */
-function toSearchParams(query: ListingQuery): string {
+/** Build a query string from defined fields only (skips empty/null/undefined). */
+function toSearchParams<T extends object>(query: T): string {
   const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(query)) {
+  for (const [key, value] of Object.entries(query) as [string, unknown][]) {
     if (value !== undefined && value !== null && value !== "") {
       params.set(key, String(value));
     }
@@ -24,4 +30,31 @@ export async function fetchListings(query: ListingQuery): Promise<ListingPage> {
     throw new Error(`Listings request failed: ${res.status} ${res.statusText}`);
   }
   return (await res.json()) as ListingPage;
+}
+
+/** Fetch one listing's full detail. Returns null on 404. */
+export async function fetchListing(id: number): Promise<ListingDetail | null> {
+  const res = await fetch(`${API_BASE}/v1/listings/${id}`, {
+    headers: { Accept: "application/json" },
+    cache: "no-store",
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    throw new Error(`Listing ${id} request failed: ${res.status}`);
+  }
+  return (await res.json()) as ListingDetail;
+}
+
+export async function fetchMapListings(
+  bbox: BBox,
+  zoom: number,
+): Promise<MapResponse> {
+  const qs = toSearchParams({ ...bbox, zoom });
+  const res = await fetch(`${API_BASE}/v1/listings/map?${qs}`, {
+    headers: { Accept: "application/json" },
+  });
+  if (!res.ok) {
+    throw new Error(`Map request failed: ${res.status} ${res.statusText}`);
+  }
+  return (await res.json()) as MapResponse;
 }

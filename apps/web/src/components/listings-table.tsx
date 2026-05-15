@@ -6,6 +6,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
 import {
@@ -61,6 +62,7 @@ const columns = [
         href={c.getValue()}
         target="_blank"
         rel="noreferrer"
+        onClick={(e) => e.stopPropagation()}
         className="text-blue-700 underline"
       >
         {c.row.original.source_slug}
@@ -70,6 +72,7 @@ const columns = [
 ];
 
 export function ListingsTable({ query }: { query: ListingQuery }) {
+  const router = useRouter();
   const { data, isLoading, isError, error, isPlaceholderData } =
     useListings(query);
 
@@ -123,7 +126,8 @@ export function ListingsTable({ query }: { query: ListingQuery }) {
             {table.getRowModel().rows.map((row) => (
               <tr
                 key={row.id}
-                className="border-t border-neutral-100 hover:bg-neutral-50"
+                onClick={() => router.push(`/listings/${row.original.id}`)}
+                className="cursor-pointer border-t border-neutral-100 hover:bg-neutral-50"
               >
                 {row.getVisibleCells().map((cell) => (
                   <td key={cell.id} className="px-3 py-2">

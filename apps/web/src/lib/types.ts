@@ -63,3 +63,64 @@ export const DISPOSITIONS = [
 ] as const;
 
 export const OWNERSHIP_TYPES = ["osobni", "druzstevni", "statni"] as const;
+
+// ---------------------------------------------------------------------------
+// Detail
+// ---------------------------------------------------------------------------
+
+export interface PhotoOut {
+  url: string;
+  width: number | null;
+  height: number | null;
+}
+
+export interface ListingDetail extends ListingSummary {
+  usable_area_m2: Decimalish;
+  land_area_m2: Decimalish;
+  rooms: number | null;
+  bathrooms: number | null;
+  floor_current: number | null;
+  floor_total: number | null;
+  year_built: number | null;
+  energy_class: string | null;
+  description: string | null;
+  agency: string | null;
+  agent_name: string | null;
+  is_owner_direct: boolean | null;
+  features: Record<string, unknown>;
+  postcode: string | null;
+  cadastral_area: string | null;
+  address_normalized: string | null;
+  photos: PhotoOut[];
+}
+
+// ---------------------------------------------------------------------------
+// Map
+// ---------------------------------------------------------------------------
+
+export interface BBox {
+  min_lon: number;
+  min_lat: number;
+  max_lon: number;
+  max_lat: number;
+}
+
+export interface MapPin {
+  id: number;
+  lat: number;
+  lon: number;
+  price_czk: Decimalish;
+  disposition: string | null;
+}
+
+export interface MapCluster {
+  lat: number;
+  lon: number;
+  count: number;
+}
+
+export interface MapResponse {
+  mode: "pins" | "clusters";
+  pins: MapPin[];
+  clusters: MapCluster[];
+}

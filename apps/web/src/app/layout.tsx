@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { Nav } from "@/components/nav";
 import { Providers } from "@/components/providers";
 
 import "./globals.css";
@@ -17,7 +18,10 @@ export default function RootLayout({
   return (
     <html lang="cs">
       <body className="min-h-screen antialiased">
-        <Providers>{children}</Providers>
+        <Providers>
+          <Nav />
+          {children}
+        </Providers>
       </body>
     </html>
   );

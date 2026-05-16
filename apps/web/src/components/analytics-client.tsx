@@ -16,6 +16,7 @@ import { formatPriceCZK, formatScorePct } from "@/lib/format";
 import type { BreakdownQuery, BreakdownRow, GroupBy } from "@/lib/types";
 
 import { BreakdownMap } from "./breakdown-map";
+import { GeolocationHeatmap } from "./geolocation-heatmap";
 
 // URL-param keys that the analytics endpoint understands (subset of the
 // listing filter set). All optional.
@@ -212,6 +213,10 @@ export function AnalyticsClient() {
         </div>
 
         <BreakdownMap rows={rows} groupBy={groupBy} />
+      </div>
+
+      <div className="border-t border-neutral-200 pt-6">
+        <GeolocationHeatmap />
       </div>
     </div>
   );

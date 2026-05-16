@@ -31,13 +31,14 @@ def get_db() -> Iterator[Session]:
         session.close()
 
 
-GroupBy = Literal["disposition", "locality"]
+GroupBy = Literal["disposition", "locality", "city_district"]
 
 # group_by → SQL expression that yields the group key.
 # Kept as a fixed mapping (not user-substituted) so the SQL stays injection-safe.
 _GROUP_EXPR: dict[GroupBy, str] = {
     "disposition": "COALESCE(l.disposition, '(neuvedeno)')",
     "locality": "COALESCE(p.locality, '(neuvedeno)')",
+    "city_district": "COALESCE(p.city_district, '(neuvedeno)')",
 }
 
 

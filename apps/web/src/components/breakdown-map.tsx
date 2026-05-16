@@ -61,9 +61,15 @@ export function BreakdownMap({ rows, groupBy }: Props) {
     for (const m of markersRef.current) m.remove();
     markersRef.current = [];
 
-    const positioned = rows.filter(
-      (r) => r.centroid_lat !== null && r.centroid_lon !== null,
-    );
+    type Positioned = BreakdownRow & { lat: number; lon: number };
+    const positioned: Positioned[] = [];
+    for (const r of rows) {
+      const lat = Number(r.centroid_lat);
+      const lon = Number(r.centroid_lon);
+      if (Number.isFinite(lat) && Number.isFinite(lon)) {
+        positioned.push({ ...r, lat, lon });
+      }
+    }
     const maxCount = positioned.reduce((m, r) => Math.max(m, r.count), 0);
 
     for (const r of positioned) {
@@ -71,9 +77,10 @@ export function BreakdownMap({ rows, groupBy }: Props) {
       const el = document.createElement("div");
       el.style.width = `${radius}px`;
       el.style.height = `${radius}px`;
+      el.style.background = "rgba(37, 99, 235, 0.7)";
       el.className =
         "flex items-center justify-center rounded-full border-2 border-white " +
-        "bg-blue-600/70 text-[10px] font-semibold text-white shadow cursor-pointer";
+        "text-[10px] font-semibold text-white shadow cursor-pointer";
       el.title = [
         r.group_key,
         `${r.count} nabídek`,
@@ -87,23 +94,27 @@ export function BreakdownMap({ rows, groupBy }: Props) {
       el.textContent = String(r.count);
       markersRef.current.push(
         new maplibregl.Marker({ element: el })
-          .setLngLat([r.centroid_lon!, r.centroid_lat!])
+          .setLngLat([r.lon, r.lat])
           .addTo(map),
       );
     }
 
     if (positioned.length > 0) {
       const bounds = new maplibregl.LngLatBounds();
-      for (const r of positioned) {
-        bounds.extend([r.centroid_lon!, r.centroid_lat!]);
-      }
+      for (const r of positioned) bounds.extend([r.lon, r.lat]);
       map.fitBounds(bounds, { padding: 40, maxZoom: 12, duration: 400 });
     }
   }, [rows, groupBy]);
 
   return (
-    <div className="relative h-[calc(100vh-16rem)] min-h-[400px] w-full overflow-hidden rounded-md border border-neutral-200">
-      <div ref={containerRef} className="absolute inset-0" />
+    <div
+      className="relative w-full overflow-hidden rounded-md border border-neutral-200"
+      style={{ height: 480 }}
+    >
+      <div
+        ref={containerRef}
+        style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0 }}
+      />
       <div className="pointer-events-none absolute left-2 top-2 rounded bg-white/90 px-2 py-1 text-xs text-neutral-700 shadow">
         Bublina = počet nabídek
       </div>

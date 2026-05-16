@@ -144,7 +144,7 @@ export interface MapResponse {
 // Analytics (breakdown)
 // ---------------------------------------------------------------------------
 
-export type GroupBy = "disposition" | "locality";
+export type GroupBy = "disposition" | "locality" | "city_district";
 
 export interface BreakdownRow {
   group_key: string;

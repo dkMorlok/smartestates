@@ -117,8 +117,15 @@ export function ListingsMap() {
     : "Načítání…";
 
   return (
-    <div className="relative h-[calc(100vh-9rem)] w-full overflow-hidden rounded-md border border-neutral-200">
-      <div ref={containerRef} className="absolute inset-0" />
+    <div
+      className="relative w-full overflow-hidden rounded-md border border-neutral-200"
+      style={{ height: "calc(100vh - 9rem)" }}
+    >
+      <div
+        ref={containerRef}
+        className="absolute"
+        style={{ inset: 0 }}
+      />
       <div className="pointer-events-none absolute left-3 top-3 rounded-md bg-white/90 px-2 py-1 text-xs text-neutral-700 shadow">
         {isFetching ? "…" : ""} {counterText}
       </div>

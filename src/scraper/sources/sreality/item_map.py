@@ -102,18 +102,26 @@ CATEGORY_TYPE_TO_LISTING_KIND: Final[dict[int, str]] = {
 }
 
 REGION_ID_TO_NAME: Final[dict[int, str]] = {
+    # Sreality `locality_region_id` values, verified empirically against
+    # api.sreality.cz (not the ČSÚ kraj codes — those differ).
     10: "Hlavní město Praha",
     11: "Středočeský kraj",
     12: "Jihočeský kraj",
     13: "Plzeňský kraj",
-    14: "Karlovarský kraj",
-    15: "Ústecký kraj",
+    14: "Jihomoravský kraj",
+    15: "Karlovarský kraj",
     16: "Liberecký kraj",
     17: "Královéhradecký kraj",
     18: "Pardubický kraj",
     19: "Vysočina",
-    20: "Jihomoravský kraj",
-    21: "Olomoucký kraj",
-    22: "Zlínský kraj",
-    23: "Moravskoslezský kraj",
+    20: "Olomoucký kraj",
+    21: "Zlínský kraj",
+    22: "Moravskoslezský kraj",
+    23: "Ústecký kraj",
+}
+
+# Sreality `locality_district_id` values for sub-region narrowing. Add new
+# districts here when extending coverage to specific cities.
+DISTRICT_ID_TO_NAME: Final[dict[int, str]] = {
+    72: "Brno-město",
 }

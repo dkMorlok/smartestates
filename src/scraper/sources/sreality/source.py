@@ -52,16 +52,18 @@ class SrealitySource(Source):
     def discover(self, params: dict[str, Any]) -> Iterator[ListingRef]:
         """
         Required params:
-          region        int  (locality_region_id, e.g. 10 = Praha)
+          region        int  (locality_region_id, e.g. 10 = Praha, 14 = JMK)
           category_main int  (1=byty, 2=domy, 3=pozemky, 4=komercni, 5=ostatni)
           category_type int  (1=prodej, 2=pronajem, 3=drazby)
         Optional:
+          district      int  (locality_district_id, e.g. 72 = Brno-město)
           per_page      int  (default 60; max ~999)
           max_pages     int  (safety cap)
         """
         region = int(params["region"])
         category_main = int(params["category_main"])
         category_type = int(params["category_type"])
+        district = int(params["district"]) if params.get("district") is not None else None
         per_page = int(params.get("per_page", 60))
         max_pages = int(params.get("max_pages", 200))
 
@@ -69,6 +71,7 @@ class SrealitySource(Source):
             "sreality.discover.start",
             region=region,
             region_name=REGION_ID_TO_NAME.get(region, "?"),
+            district=district,
             category_main=category_main,
             category_type=category_type,
         )
@@ -76,13 +79,15 @@ class SrealitySource(Source):
         seen_ids: set[str] = set()
         with make_client() as client:
             for page in range(1, max_pages + 1):
-                qs = {
+                qs: dict[str, int] = {
                     "category_main_cb": category_main,
                     "category_type_cb": category_type,
                     "locality_region_id": region,
                     "page": page,
                     "per_page": per_page,
                 }
+                if district is not None:
+                    qs["locality_district_id"] = district
                 url = f"{self.base_url}/api/cs/v2/estates?{urlencode(qs)}"
                 self._bucket.acquire()
                 try:

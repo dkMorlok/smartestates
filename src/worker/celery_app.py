@@ -58,6 +58,22 @@ celery_app.conf.beat_schedule = {
         ),
         "options": {"queue": "ingest.discover"},
     },
+    "sreality-discover-brno-byty-prodej": {
+        "task": "ingest.discover",
+        # Offset by 30 minutes from Praha so the two discovery sweeps don't
+        # contend for the same fetch queue.
+        "schedule": crontab(minute=30, hour="*/6"),
+        "args": (
+            "sreality",
+            {
+                "region": 14,
+                "district": 72,  # Brno-město
+                "category_main": 1,
+                "category_type": 1,
+            },
+        ),
+        "options": {"queue": "ingest.discover"},
+    },
     "sreality-canary": {
         "task": "ops.source_canary",
         "schedule": crontab(minute=0, hour="*"),

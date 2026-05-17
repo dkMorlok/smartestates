@@ -15,9 +15,6 @@ import { fetchBreakdown } from "@/lib/api";
 import { formatPriceCZK, formatScorePct } from "@/lib/format";
 import type { BreakdownQuery, BreakdownRow, GroupBy } from "@/lib/types";
 
-import { BreakdownMap } from "./breakdown-map";
-import { GeolocationHeatmap } from "./geolocation-heatmap";
-
 // URL-param keys that the analytics endpoint understands (subset of the
 // listing filter set). All optional.
 const FILTER_KEYS = [
@@ -141,9 +138,8 @@ export function AnalyticsClient() {
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
-        <div className="overflow-hidden rounded-md border border-neutral-200">
-          <table className="w-full text-sm">
+      <div className="overflow-hidden rounded-md border border-neutral-200">
+        <table className="w-full text-sm">
             <thead className="bg-neutral-50 text-xs uppercase text-neutral-500">
               <tr>
                 <th className="px-3 py-2 text-left">
@@ -208,15 +204,8 @@ export function AnalyticsClient() {
                   </td>
                 </tr>
               ))}
-            </tbody>
-          </table>
-        </div>
-
-        <BreakdownMap rows={rows} groupBy={groupBy} />
-      </div>
-
-      <div className="border-t border-neutral-200 pt-6">
-        <GeolocationHeatmap />
+          </tbody>
+        </table>
       </div>
     </div>
   );

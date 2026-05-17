@@ -80,6 +80,7 @@ def normalize_from_raw(raw_listing_id: int) -> dict[str, Any]:
             "floor_total": parsed.get("floor_total"),
             "year_built": parsed.get("year_built"),
             "property_type": parsed["property_type"],
+            "listing_kind": parsed.get("listing_kind", "prodej"),
             "disposition": parsed.get("disposition"),
             "ownership_type": parsed.get("ownership_type"),
             "building_type": parsed.get("building_type"),

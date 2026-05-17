@@ -165,6 +165,7 @@ class Listing(Base):
     year_built: Mapped[int | None] = mapped_column(SmallInteger)
 
     # CZ-specific (see CZ_NOTES.md)
+    listing_kind: Mapped[str] = mapped_column(String(16), default="prodej", nullable=False)
     property_type: Mapped[str] = mapped_column(String(16))
     disposition: Mapped[str | None] = mapped_column(String(16))
     ownership_type: Mapped[str | None] = mapped_column(String(16))
@@ -205,7 +206,7 @@ class Listing(Base):
         ),
         Index("ix_listing_property", "property_id"),
         Index("ix_listing_dedup_cluster", "dedup_cluster_id"),
-        Index("ix_listing_typekey", "property_type", "ownership_type", "disposition"),
+        Index("ix_listing_kind_typekey", "listing_kind", "property_type", "ownership_type", "disposition"),
         Index("ix_listing_last_seen", "last_seen_at"),
         CheckConstraint("price IS NULL OR price >= 0", name="ck_listing_price_nonneg"),
         CheckConstraint("size_m2 IS NULL OR size_m2 > 0", name="ck_listing_size_positive"),

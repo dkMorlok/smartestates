@@ -168,6 +168,7 @@ export interface BreakdownResponse {
 // Query params accepted by GET /v1/analytics/breakdown.
 export interface BreakdownQuery {
   group_by?: GroupBy;
+  listing_kind?: "prodej" | "pronajem" | "drazba";
   property_type?: string;
   disposition?: string;
   ownership_type?: string;
@@ -176,6 +177,22 @@ export interface BreakdownQuery {
   max_price?: number;
   min_size?: number;
   max_size?: number;
+}
+
+// /v1/analytics/yield: gross annual rent yield per městská část.
+export interface YieldRow {
+  city_district: string;
+  sale_count: number;
+  rent_count: number;
+  sale_median_ppm2: Decimalish;
+  rent_median_ppm2: Decimalish;
+  yield_pct: number | null;
+  centroid_lat: number | null;
+  centroid_lon: number | null;
+}
+
+export interface YieldResponse {
+  rows: YieldRow[];
 }
 
 // /v1/listings/{id}/score. Numerics arrive as Decimal-strings; coerce on use.

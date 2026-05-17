@@ -1,5 +1,6 @@
 import { AggregateMap } from "@/components/aggregate-map";
 import { ListingsMap } from "@/components/listings-map";
+import { YieldMap } from "@/components/yield-map";
 
 export default function MapPage() {
   return (
@@ -37,6 +38,8 @@ export default function MapPage() {
         description="Jedna bublina = jedna čtvrť. Velikost = počet aktivních nabídek. Zobrazujeme top 60 lokalit podle počtu."
         topN={60}
       />
+
+      <YieldMap />
     </main>
   );
 }

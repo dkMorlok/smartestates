@@ -7,6 +7,7 @@ import type {
   ListingQuery,
   ListingScore,
   MapResponse,
+  YieldResponse,
 } from "./types";
 
 const API_BASE =
@@ -78,6 +79,17 @@ export async function fetchBreakdown(
     throw new Error(`Breakdown request failed: ${res.status} ${res.statusText}`);
   }
   return (await res.json()) as BreakdownResponse;
+}
+
+export async function fetchYield(): Promise<YieldResponse> {
+  const res = await fetch(`${API_BASE}/v1/analytics/yield`, {
+    headers: { Accept: "application/json" },
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error(`Yield request failed: ${res.status} ${res.statusText}`);
+  }
+  return (await res.json()) as YieldResponse;
 }
 
 export async function fetchMapListings(

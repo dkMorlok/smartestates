@@ -74,6 +74,29 @@ celery_app.conf.beat_schedule = {
         ),
         "options": {"queue": "ingest.discover"},
     },
+    "sreality-discover-praha-byty-pronajem": {
+        "task": "ingest.discover",
+        "schedule": crontab(minute=15, hour="*/6"),
+        "args": (
+            "sreality",
+            {"region": 10, "category_main": 1, "category_type": 2},
+        ),
+        "options": {"queue": "ingest.discover"},
+    },
+    "sreality-discover-brno-byty-pronajem": {
+        "task": "ingest.discover",
+        "schedule": crontab(minute=45, hour="*/6"),
+        "args": (
+            "sreality",
+            {
+                "region": 14,
+                "district": 72,  # Brno-město
+                "category_main": 1,
+                "category_type": 2,
+            },
+        ),
+        "options": {"queue": "ingest.discover"},
+    },
     "sreality-canary": {
         "task": "ops.source_canary",
         "schedule": crontab(minute=0, hour="*"),

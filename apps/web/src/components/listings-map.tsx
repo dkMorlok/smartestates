@@ -119,7 +119,7 @@ export function ListingsMap() {
   return (
     <div
       className="relative w-full overflow-hidden rounded-md border border-neutral-200"
-      style={{ height: "calc(100vh - 9rem)", minHeight: 480 }}
+      style={{ height: 520 }}
     >
       <div
         ref={containerRef}
